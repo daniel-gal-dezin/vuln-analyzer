@@ -1,0 +1,14 @@
+{
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.inlineSuggest.enabled": true,
+  "editor.inlineSuggest.showToolbar": "never",
+  "editor.suggest.maxVisibleSuggestions": 5,
+  "editor.suggest.preview": true,
+  "editor.parameterHints.enabled": false
+}
+  
