@@ -4,12 +4,15 @@ import os
 
 
 class LLMEngine:
-    def __init__(self, model_path: str = "models\gemma-3-1b-it.Q4_K_M.gguf"):
+    def __init__(self, model_path="models/phi-4.Q4_1.gguf", n_ctx=4096, n_threads=8):
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model file not found: {model_path}")
         print(f"Loading model from {model_path}")
         # Use the Phi-4 model again (4 K context window)
-        self.model = Llama(model_path="models\phi-4-Q4_1.gguf", n_ctx=4096, n_threads=8, verbose=True)
+        self.model = Llama(model_path=model_path,
+        n_ctx=n_ctx,
+        n_threads=n_threads,
+        verbose=True)
 
 
     def generate_text(self, prompt: str, max_tokens: int = 512):
@@ -62,9 +65,11 @@ class LLMEngine:
         if current_block:
             blocks.append(("\n".join(current_block), start_line))
 
-        responses = []
+        issues: list[str] = []
         for i, (block, start_line) in enumerate(blocks, start=1):
+            # Optional progress print
             print(f"\n🧩 Processing block {i}/{len(blocks)} (≈{len(block.split())} words)…")
+
             prompt = f"""
                     You are a secure C/C++ code reviewer.
                     You are given a code block and you need to analyze it for vulnerabilities.
@@ -94,28 +99,22 @@ class LLMEngine:
 
             raw_response = self.generate_text(prompt, max_tokens=max_tokens)
 
-            # DEBUG: print the raw response so the user can see what the model produced
-            print("\n=== RAW MODEL OUTPUT ===\n", raw_response, "\n========================\n")
+            LINE_RE = re.compile(r'^\s*Line +\d+\s*[:–-]')  # colon or dash
+            issues.extend(
+                ln.rstrip() for ln in raw_response.splitlines() if LINE_RE.match(ln)
+            )
 
-            LINE_RE = re.compile(r'^\s*Line +\d+\s*[:–-]')  # accept colon OR dash
+        LINE_RE = re.compile(r'^\s*Line +\d+')
+        unique_sorted = sorted(
+            set(issues),
+            key=lambda s: int(re.search(r'\d+', s).group())
+        )
 
-            # keep only vulnerability lines
-            meaningful = [ln.rstrip() for ln in raw_response.splitlines()
-                          if LINE_RE.match(ln)]
+        if not unique_sorted:
+            final_output = f"# analyzer {os.path.basename(file_path)}\nNo vulnerabilities found."
+        else:
+            final_output = "\n".join(unique_sorted)
 
-            if not meaningful:
-                meaningful = [f"# analyzer {os.path.basename(file_path)}", "No vulnerabilities found."]
+        print("\n=== FINAL REPORT ===\n" + final_output)
 
-            responses.append("\n".join(meaningful))
-
-        issues = []
-        for blk_resp in responses:
-            for ln in blk_resp.splitlines():
-                if LINE_RE.match(ln):
-                    issues.append(ln.strip())
-
-        unique = sorted(set(issues),
-                        key=lambda s: int(re.search(r'\d+', s).group()))
-        print("\n".join(unique))
-
-        return responses
+        return final_output

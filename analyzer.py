@@ -16,11 +16,10 @@ def main():
         print(f"\n🔍 Analyzing file: {file_path}\n" + "-"*50)
         try:
             # Split the file into chunks and analyze each one
-            responses = engine.analyze_file(file_path, max_tokens=256)
-            for idx, resp in enumerate(responses, start=1):
-                print(f"\n--- Block {idx}/{len(responses)} ---")
-                print(resp)
-                print("\n" + "="*60 + "\n")
+            report = engine.analyze_file(file_path, max_tokens=768)
+            print("\n=== SCAN REPORT ===\n")
+            print(report)
+            print("\n" + "="*60 + "\n")
         except FileNotFoundError as e:
             print(f"❌ Error: {e}")
 
