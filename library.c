@@ -1131,7 +1131,7 @@ int purchase_book(int member_id, const char* isbn) {
     printf("Amount charged: $%.2f\n", purchase_price);
     printf("Thank you for your purchase!\n");
     
-    return 1;
+    return 1; 
 }
 
 // Calculate purchase price with membership discount
