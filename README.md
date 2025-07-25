@@ -52,59 +52,85 @@
 
 ## Installation & Setup
 
-### Prerequisites
-- Python 3.10+
-- C++ Build Tools (for llama-cpp-python compilation)
-- 4+ GB RAM (recommended 8+ GB for larger models)
-- LLM Model file in GGUF format
+### 🐳 Quick Start with Docker (Recommended)
 
-### Step-by-Step Installation
+**No dependencies needed!** Everything is pre-built in the Docker container.
 
-#### 1. Clone/Download the Project
+#### 1. Clone the Project
 ```bash
-git clone <repository-url>
+git clone https://github.com/daniel-gal-dezin/vuln-analyzer.git
 cd vuln-analyzer
 ```
 
-#### 2. Create Virtual Environment
+#### 2. Build Docker Image
 ```bash
-# Windows
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-
-# Linux/Mac
-python -m venv .venv
-source .venv/bin/activate
+docker build -t vuln-analyzer .
 ```
 
-#### 3. Install Dependencies
-```bash
-# Pin the llama-cpp-python version to avoid rebuilds
-pip install llama-cpp-python==0.3.14
+#### 3. Download a Model
+You need a GGUF model file:
+- **Phi-4** (Recommended): ~7GB, good for code analysis
+- **Code Llama**: ~4GB, specialized for programming
+- **Phi-3-mini**: ~2GB, faster but less accurate
 
-# Install the application
-pip install -e .
-```
-
-#### 4. Download an LLM Model
-You need a GGUF model file. Popular options:
-- **Phi-4** (Recommended): Compact, good for code analysis
-- **Code Llama**: Specialized for programming tasks
-- **Mistral**: General-purpose with good reasoning
-
-Download and place in `models/` directory:
 ```bash
 mkdir models
 # Download your chosen model to models/phi-4-Q4_1.gguf
+# Example: wget https://huggingface.co/microsoft/Phi-4-GGUF/resolve/main/phi-4-q4_1.gguf -O models/phi-4-Q4_1.gguf
 ```
 
-#### 5. Verify Installation
+#### 4. Run Analysis
 ```bash
-# Test the CLI
-vuln-analyzer --help
+# Analyze a file
+docker run --rm \
+  -v ./models:/app/models \
+  -v ./:/data \
+  vuln-analyzer analyze /data/library.c
 
-# Or run directly
-python -m cli --help
+# Get help
+docker run --rm vuln-analyzer --help
+```
+
+**That's it!** No Python setup, no dependency issues, no compilation needed.
+
+### 🤔 Docker vs Manual Installation
+
+| Method | Pros | Cons | When to Use |
+|--------|------|------|-------------|
+| **🐳 Docker** | ✅ No dependencies<br/>✅ Consistent environment<br/>✅ No compilation<br/>✅ Works everywhere | ❌ Requires Docker<br/>❌ Larger download | **Recommended for most users** |
+| **💻 Manual** | ✅ Direct Python access<br/>✅ Faster startup<br/>✅ Easy debugging | ❌ Complex setup<br/>❌ Dependency issues<br/>❌ Long compilation | **Only for development** |
+
+---
+
+### 💻 Manual Installation (For Development Only)
+
+Only use this if you want to modify the code or don't want to use Docker.
+
+#### Prerequisites
+- Python 3.10+
+- C++ Build Tools (for llama-cpp-python compilation)
+- 4+ GB RAM (recommended 8+ GB for larger models)
+
+#### Steps
+```bash
+# 1. Create Virtual Environment
+python -m venv .venv
+
+# Windows
+.venv\Scripts\Activate.ps1
+# Linux/Mac
+source .venv/bin/activate
+
+# 2. Install Dependencies (this takes time!)
+pip install llama-cpp-python==0.3.14
+pip install -e .
+
+# 3. Download model (same as Docker method)
+mkdir models
+# Download model to models/phi-4-Q4_1.gguf
+
+# 4. Run
+python -m cli analyze library.c
 ```
 
 ---
@@ -149,15 +175,9 @@ Options:
 3. Each block maintains line number context
 4. Processes blocks independently to handle large files
 
-### 3. **analyzer.py** - Standalone Analysis Script
-**Purpose**: Simple script interface (legacy/alternative to CLI)
 
-**Usage**: Direct Python execution for quick tests
-```bash
-python analyzer.py library.c
-```
 
----
+
 
 ## Detailed Workflow
 
@@ -232,13 +252,13 @@ No vulnerabilities found.
 The first line of this block is **line 45** in the original file.
 Report absolute line numbers.
 
-BEGIN CODE
+ANALYZE THIS CODE FOR SECURITY VULNERABILITIES:
 ------------------------------
 char buffer[10];
 gets(buffer);  // Vulnerable function
 printf(buffer); // Format string vulnerability
 ------------------------------
-END CODE
+PROVIDE ONLY THE VULNERABILITY ANALYSIS ABOVE, NOT THE CODE.
 ```
 
 ### Example Expected Output
@@ -287,36 +307,53 @@ find . -name "*.c" -o -name "*.cpp" | xargs vuln-analyzer analyze
 
 ---
 
-## Docker Deployment
+## Docker Advanced Usage
 
-### Building the Image
+### Additional Examples
 ```bash
-# Build container
-docker build -t vuln-analyzer .
 
-# Build with specific tag
-docker build -t vuln-analyzer:v1.0 .
-```
-
-### Running with Docker
-```bash
-# Basic usage (mount model and code)
+# Analyze file
 docker run --rm \
-  -v /path/to/model.gguf:/app/models/phi-4-Q4_1.gguf \
-  -v /path/to/code:/data \
-  vuln-analyzer analyze /data/vulnerable.c
+  -v ./models:/app/models \
+  -v ./:/data \
+  vuln-analyzer analyze /data/file1.c 
+  #--------------> syntax for linux
 
-# Interactive mode
+
+
+   docker run --rm 
+   -v "$(pwd)/models:/app/models" 
+   -v "$(pwd):/data" 
+   vuln-analyzer analyze /data/notes.cpp  #----------------------->syntax for windows
+
+
+
+
+
+
+# Analyze multiple files
+docker run --rm \
+  -v ./models:/app/models \
+  -v ./:/data \
+  vuln-analyzer analyze /data/file1.c /data/file2.cpp
+
+# Use different model
+docker run --rm \
+  -v ./models:/app/models \
+  -v ./:/data \
+  vuln-analyzer analyze /data/code.c -m /app/models/different-model.gguf
+
+# Verbose mode with custom settings
+docker run --rm \
+  -v ./models:/app/models \
+  -v ./:/data \
+  vuln-analyzer analyze /data/code.c --verbose -t 800 -j 16
+
+# Interactive shell (for debugging)
 docker run -it --rm \
-  -v /path/to/model.gguf:/app/models/phi-4-Q4_1.gguf \
-  -v /path/to/code:/data \
+  -v ./models:/app/models \
+  -v ./:/data \
   vuln-analyzer bash
-
-# Batch analysis
-docker run --rm \
-  -v /path/to/model.gguf:/app/models/phi-4-Q4_1.gguf \
-  -v /path/to/project:/data \
-  vuln-analyzer analyze /data/*.c
 ```
 
 ### Docker Compose Example
@@ -340,7 +377,6 @@ services:
 vuln-analyzer/
 ├── cli.py              # Main CLI interface
 ├── llm_engine.py       # LLM processing engine
-├── analyzer.py         # Legacy/standalone script
 ├── setup.py           # Package configuration
 ├── Dockerfile         # Container build instructions
 ├── .dockerignore      # Docker build exclusions
@@ -469,7 +505,7 @@ vuln-analyzer analyze code.c -j $(nproc) --ctx 4096
 # Memory-constrained
 vuln-analyzer analyze code.c --ctx 2048 -t 256
 
-# Large file handling
+# small file handling
 vuln-analyzer analyze big_file.c --nosplit -t 2048
 ```
 

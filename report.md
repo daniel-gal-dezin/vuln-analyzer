@@ -2,18 +2,15 @@
 **Vulnerability Analyzer Development Report Overview**
 In this assignment I was tasked with creating a vulnerability scanner for C/C++ source files, powered by a local large‑language model (LLM). The primary goal was to deliver a command‑line tool that could accept one or more source files, analyse them using an LLM, and output any vulnerabilities in a well‑defined format:
 
-php-template
-Copy
-Edit
+
 # analyzer <file>
 Line <number>: <vulnerability‑type> — <brief cause> — FIX: <brief fix>
 If no vulnerabilities were found, the tool should instead output:
-
-cpp
-Copy
-Edit
 # analyzer <file>
 No vulnerabilities found.
+
+
+
 Alongside this, the project needed to be packaged into a Python package with a setup.py, include a CLI with useful options, and be deployable via Docker. My report here outlines my decision‑making and the sequence of improvements I made while building and refining the tool.
 
 Initial Setup
@@ -29,7 +26,7 @@ Be installable as a package (pip install .) and include a working CLI.
 
 Provide a Dockerfile for containerised deployment.
 
-I also inspected the existing code files—cli.py, llm_engine.py, notes.cpp, and a simple analyzer.py script—to understand how the tool currently worked. This initial version did some of the required tasks, but there were several shortcomings around prompt construction, output parsing, packaging, and runtime efficiency.
+first i built the classes files—cli.py, llm_engine.py, and a simple analyzer.py script—to understand how the tool currently worked. This initial version did some of the required tasks, but there were several shortcomings around prompt construction, output parsing, packaging, and runtime efficiency.
 
 Understanding the LLM and Prompting
 The first challenge was ensuring that the LLM understood and followed the instructions. I noticed that the initial implementation simply passed a large text prompt to the model using a “completion” API. While this might work for older text‑only models, the Phi‑4 model we wanted to use expects a chat‑style prompt with separate system and user messages. Without that, the model often echoed the code block back verbatim and failed to list any vulnerabilities.
@@ -68,5 +65,11 @@ Provide multiple prompt templates (e.g. for different models or languages) and a
 Add unit tests for the engine and CLI to guard against regressions.
 
 Explore asynchronous or parallel processing for scanning multiple files faster.
+
+Implement model fine-tuning through pre-training on security-focused datasets to improve vulnerability detection accuracy.
+
+Add agent-to-agent communication where a second LLM agent reviews and sharpens the initial analysis results for higher precision.
+
+Integrate LoRA (Low-Rank Adaptation) modules to optimize model calculations and enable efficient fine-tuning without full model retraining.
 
 Overall, this exercise was a valuable exploration into orchestrating a local LLM for static code analysis, balancing the model’s capabilities with careful prompting and practical engineering choices.
