@@ -1,9 +1,28 @@
 # VULN-ANALYZER: Complete Workflow Guide
 
 
+> ⚠️ **Note: Due to size constraints, model files were removed from this repository and are not included in the ZIP.**
 
-T⚠️ Note: Due to size constraints, model files were removed.
-To restore them, download from:
+## 🔄 Restore the model manually
+
+To run the application, you **must download the required model manually** and place it in the following path inside the project folder:
+
+
+vuln-analyzer/
+├── models/
+│ └── phi-4.Q4_1.gguf
+
+
+### 📥 Download instructions:
+
+1. Create a directory named `models` (if it doesn't already exist) inside the project folder.
+2. Download the model from [Hugging Face](https://huggingface.co/TheBloke/phi-4-GGUF) (or your provided link).
+3. Place the file `phi-4.Q4_1.gguf` **exactly** inside `vuln-analyzer/models/`
+
+### 📌 Important:
+- The `.gitignore` file is configured to exclude large model files from the archive.
+- The directory `models/` will exist, but the actual model file will not be included.
+- If you do not place the model in the correct path, the application will not run properly.
 
 
 ## 📋 Table of Contents
