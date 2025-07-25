@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: vuln-analyzer
+Version: 0.1.0
+Summary: LLM-powered C/C++ vulnerability scanner
+Requires-Python: >=3.10
+Requires-Dist: llama-cpp-python==0.3.14
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
