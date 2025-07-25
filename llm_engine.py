@@ -81,7 +81,7 @@ class LLMEngine:
             response = self.model.create_chat_completion(
                 messages=messages,
                 max_tokens=max_tokens,
-                temperature=0.4,
+                temperature=0.4, 
                 repeat_penalty=1.3,
             )
             # Depending on the API version, the generated text may be under
