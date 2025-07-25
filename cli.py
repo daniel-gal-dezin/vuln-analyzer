@@ -35,61 +35,26 @@ def _positive_int(value: str) -> int:
 # -------------------------------------------------------------
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        prog="vuln-analyzer",
-        description="LLM-powered C/C++ vulnerability scanner",
-    )
+    p = argparse.ArgumentParser(prog="vuln-analyzer",
+                                description="LLM-powered C/C++ vulnerability scanner")
 
     sub = p.add_subparsers(dest="command", required=True)
 
     scan = sub.add_parser("analyze", help="scan source file(s)")
-    scan.add_argument(
-        "files",
-        metavar="FILE",
-        nargs="+",
-        help="one or more C/C++ source files to analyze",
-    )
-    scan.add_argument(
-        "-m",
-        "--model",
-        default="models/phi-4-Q4_1.gguf",
-        help="path to GGUF model (default: %(default)s)",
-    )
-    scan.add_argument(
-        "-t",
-        "--tokens",
-        type=_positive_int,
-        default=512,
-        help="max tokens generated per block (default: %(default)s)",
-    )
-    scan.add_argument(
-        "-j",
-        "--threads",
-        type=_positive_int,
-        default=8,
-        help="CPU threads for ggml (default: %(default)s)",
-    )
-    scan.add_argument(
-        "--ctx",
-        type=_positive_int,
-        default=4096,
-        help="model context window (default: %(default)s)",
-    )
-    scan.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="print raw model output for debugging",
-    )
-    scan.add_argument(
-        "--nosplit",
-        action="store_true",
-        help=(
-            "send the entire file to the model without splitting. "
-            "This is recommended for most files, as splitting can cause "
-            "context loss and missed vulnerabilities."
-        ),
-    )
+    scan.add_argument("files", metavar="FILE", nargs="+",
+                      help="one or more C/C++ source files to analyze")
+    scan.add_argument("-m", "--model", default="models/phi-4-Q4_1.gguf",
+                      help="path to GGUF model (default: %(default)s)")
+    scan.add_argument("-t", "--tokens", type=_positive_int, default=512,
+                      help="max tokens generated per block (default: %(default)s)")
+    scan.add_argument("-j", "--threads", type=_positive_int, default=8,
+                      help="CPU threads for ggml (default: %(default)s)")
+    scan.add_argument("--ctx", type=_positive_int, default=4096,
+                      help="model context window (default: %(default)s)")
+    scan.add_argument("-v", "--verbose", action="store_true",
+                      help="print raw model output for debugging")
+    scan.add_argument("--nosplit", action="store_true",
+                      help="do not split file into chunks")
     return p
 
 # -------------------------------------------------------------
@@ -98,12 +63,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def cmd_analyze(args: argparse.Namespace) -> None:
     # Instantiate engine once and reuse for all files
-    engine = LLMEngine(
-        model_path=args.model,
-        n_ctx=args.ctx,
-        n_threads=args.threads,
-        debug=args.verbose,
-    )
+    engine = LLMEngine(model_path=args.model, n_ctx=args.ctx, n_threads=args.threads,
+                       debug=args.verbose)
 
     ok = True
     for file_path in args.files:
@@ -115,14 +76,10 @@ def cmd_analyze(args: argparse.Namespace) -> None:
 
         print(f"\n🔍  Analyzing {file_path}")
         try:
-            report = engine.analyze_file(
-                str(path),
-                max_tokens=args.tokens,
-                nosplit=args.nosplit,
-            )
+            report = engine.analyze_file(str(path), max_tokens=args.tokens, nosplit=args.nosplit)
             print("\n=== SCAN REPORT ===\n")
             print(report)
-            print("\n" + "=" * 60 + "\n")
+            print("\n" + "="*60 + "\n")
         except Exception as exc:  # broad catch to keep CLI alive
             ok = False
             print(f"❌  Error scanning {file_path}: {exc}", file=sys.stderr)
@@ -145,4 +102,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main() 
