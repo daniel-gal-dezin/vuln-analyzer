@@ -478,6 +478,8 @@ RuntimeError: CUDA out of memory / Killed (OOM)
 - Try different model (some are better at security analysis)
 - Increase token limit for more detailed analysis
 - Check if code actually has vulnerabilities
+ -run it on develop mode localy cause upload the model to volume taking long time,
+  #example -----> vuln-analyzer analyze notes.cpp 
 
 #### 6. Docker Issues
 ```
