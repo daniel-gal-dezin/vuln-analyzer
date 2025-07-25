@@ -1,5 +1,11 @@
 # VULN-ANALYZER: Complete Workflow Guide
 
+
+
+T⚠️ Note: Due to size constraints, model files were removed.
+To restore them, download from:
+
+
 ## 📋 Table of Contents
 1. [Overview](#overview)
 2. [System Architecture](#system-architecture)
